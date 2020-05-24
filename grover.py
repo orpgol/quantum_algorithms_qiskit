@@ -49,15 +49,13 @@ def create_grover_invalid_bitmap(bit):
 
 class Grover(object):
     def _init_(self):        
-        self.n_qubits = None
         self.qubits = None
         self.bit_map = None
         self.num_iter = None
             
     def _run_init(self, bit):
         self.bit_map = bit
-        self.n_qubits = 2**len(list(bit.keys())[0])
-        self.qubits = list(range(int(np.log2(self.n_qubits))))
+        self.qubits = list(range(len(list(bit.keys())[0])))
         self.num_iter = int(round(np.pi * 2 ** (len(self.qubits) / 2.0 - 2.0)))
 
     def _grover_oracle_matrix(self, bit):
