@@ -99,7 +99,7 @@ class Grover(object):
         result = job.result()
         # Returns counts
         counts = result.get_counts(circuit)
-        print("\nTotal count for 00 and 11 are:",counts)
+        print("\nTotal counts are:",counts)
         # Draw the circuit
         print(circuit.draw())
 
