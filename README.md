@@ -5,21 +5,16 @@ In order to run these programs you must have Python 3 and Qiskit 2 properly inst
 
 ## Bernstein-Vazirani
 ```
-usage: Bernstein-Vazirani.py [-h] a b
-
-positional arguments:
-  a           Enter the a bit string for the function ax(xor)b you want to run
-              with
-  b           Enter the b sibgle bit for the function ax(xor)b you want to run
-              with
+usage: bv_qiskit.py [-h] [--s S]
 
 optional arguments:
   -h, --help  show this help message and exit
+  --s S       Enter the secret string.
 ```
 
 Example:
 
-`python Bernstein-Vazirani.py 101 1`
+`python bv_qiskit.py 101`
 
 Output:
 
@@ -27,21 +22,19 @@ Original `a` and `b`.
 
 ## Deutsch-Jozsa
 ```
-usage: Deutsch-Jozsa.py [-h] bits algo
-
-positional arguments:
-  bits        Enter the number of bits you want to run with
-  algo        Enter balanced for balanced or const for constant function
+usage: dj_qiskit.py [-h] [--bits BITS] [--algo ALGO]
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help   show this help message and exit
+  --bits BITS  Enter the number of bits you want to run with.
+  --algo ALGO  Enter either "constant" or "balanced".
 ```
 
 Examples:
 
-`python Deutsch-Jozsa.py 3 balanced`
+`python dj_qiskit.py 3 balanced`
 
-`python Deutsch-Jozsa.py 3 const`
+`python dj_qiskit.py 3 const`
 
 Output:
 
@@ -49,7 +42,7 @@ Measurements for `n` bits (1 if the oracle is constant and 0 if it is balanced).
 
 ## Simon's
 ```
-usage: Simons.py [-h] string ftype
+usage: simons.py [-h] string ftype
 
 positional arguments:
   string      Secret string s of length n
@@ -61,9 +54,9 @@ optional arguments:
 
 Examples:
 
-`python Simons.py 10 1`
+`python simons.py 10 1`
 
-`python Simons.py 100 2`
+`python simons.py 100 2`
 
 Output:
 
@@ -71,22 +64,19 @@ Prints statement indicating if the functions is one-to-one or two-to-one as well
 
 ## Grover
 ```
-usage: Grover.py [-h] bit valid
-
-positional arguments:
-  bit         Enter the bit string for your function to search for
-  valid       Enter valid for valid grover mapping or invalid for no string
-              returning 1
+usage: grover.py [-h] [--bit BIT] [--valid VALID]
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help     show this help message and exit
+  --bit BIT      Enter the bit string for your function to search for
+  --valid VALID  Enter valid for valid grover mapping or invalid for no string returning 1
 ```
 
 Examples:
 
-`python Grover.py 101 valid`
+`python grover.py 101 valid`
 
-`python Grover.py 101 invalid`
+`python grover.py 101 invalid`
 
 Output:
 
