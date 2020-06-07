@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import numpy as np
@@ -19,6 +19,13 @@ from qiskit.visualization import plot_histogram
 from collections import defaultdict
 import pprint
 import argparse, sys
+
+from qiskit import IBMQ
+from qiskit.tools.monitor import job_monitor
+from qiskit.providers.ibmq import least_busy
+#IBMQ.save_account('<your acct number>')
+
+provider = IBMQ.load_account()
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--bit', help='Enter the bit string for your function to search for')
@@ -56,7 +63,7 @@ class Grover(object):
     def _run_init(self, bit):
         self.bit_map = bit
         self.qubits = list(range(len(list(bit.keys())[0])))
-        self.num_iter = int(round(np.pi * 2 ** (len(self.qubits) / 2.0 - 2.0)))
+        self.num_iter = int(round(np.sqrt(len(self.qubits))))
 
     def _grover_oracle_matrix(self, bit):
         n_bits = len(list(bit.keys())[0])
@@ -73,7 +80,7 @@ class Grover(object):
         diffusion_matrix = np.diag([1.0] + [-1.0] * (dim - 1))
         return diffusion_matrix
         
-    def grover_run(self, bit):
+    def grover_run(self, bit, real=False):
         self._run_init(bit)
         
         oracle_matrix = self._grover_oracle_matrix(bit)
@@ -81,8 +88,6 @@ class Grover(object):
     
         diffusion_matrix = self._grover_diffusion_op()
         diffusion = Operator(diffusion_matrix)
-
-        simulator = Aer.get_backend('qasm_simulator')
         circuit = QuantumCircuit(len(self.qubits), len(self.qubits))
         circuit.h(self.qubits)
         ## Repeating part of the algorithm
@@ -93,8 +98,20 @@ class Grover(object):
             circuit.h(self.qubits)
             
         circuit.measure(self.qubits, self.qubits)
-        # run the program on a QVM
-        job = execute(circuit, simulator, shots=1000)
+        
+        if not real:
+            # run the program on a QVM
+            simulator = Aer.get_backend('qasm_simulator')
+            job = execute(circuit, simulator, shots=1000)
+        else:
+            backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 3 and 
+                                   not x.configuration().simulator and x.status().operational==True))
+            print("least busy backend: ", backend)
+            shots = 1024
+            job = execute(circuit, backend=backend, shots=shots, optimization_level=3)
+
+            job_monitor(job, interval = 2)
+        
         # Grab results from the job
         result = job.result()
         # Returns counts
@@ -102,9 +119,10 @@ class Grover(object):
         print("\nTotal counts are:",counts)
         # Draw the circuit
         print(circuit.draw())
+        return circuit, result
 
 
-# In[ ]:
+# In[3]:
 
 
 if __name__ == '__main__':
@@ -127,5 +145,12 @@ if __name__ == '__main__':
         raise AssertionError("valid must be a either 'valid' or 'invalid' strings")
         
     grover = Grover()
-    grover.grover_run(bit)
+    circ, result = grover.grover_run(bit, real=True)
+    print("Time taken:", result.time_taken)
+
+
+# In[ ]:
+
+
+
 
