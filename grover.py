@@ -113,12 +113,17 @@ class Grover(object):
             job_monitor(job, interval = 2)
         
         # Grab results from the job
-        result = job.result()
+        try:
+            result = job.result()
+        except:
+            print(job.error_message())
+            return -1,-1
         # Returns counts
         counts = result.get_counts(circuit)
         print("\nTotal counts are:",counts)
         # Draw the circuit
         print(circuit.draw())
+        print("Time taken:", result.time_taken)
         return circuit, result
 
 
@@ -146,7 +151,6 @@ if __name__ == '__main__':
         
     grover = Grover()
     circ, result = grover.grover_run(bit, real=True)
-    print("Time taken:", result.time_taken)
 
 
 # In[ ]:
