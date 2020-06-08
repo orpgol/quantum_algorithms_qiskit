@@ -104,8 +104,9 @@ class Grover(object):
             simulator = Aer.get_backend('qasm_simulator')
             job = execute(circuit, simulator, shots=1000)
         else:
-            backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 3 and 
+            backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= len(self.qubits) and 
                                    not x.configuration().simulator and x.status().operational==True))
+            
             print("least busy backend: ", backend)
             shots = 1024
             job = execute(circuit, backend=backend, shots=shots, optimization_level=3)
