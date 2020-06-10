@@ -3,8 +3,13 @@ from qiskit import BasicAer
 from qiskit.providers.ibmq import least_busy
 from qiskit import QuantumCircuit, execute
 from qiskit.visualization import plot_histogram
+from qiskit import IBMQ, assemble, transpile
+from qiskit.tools.monitor import job_monitor
+
 import argparse, sys
 import time
+
+provider = IBMQ.load_account()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--bits', help = 'Enter the number of bits you want to run with.')
@@ -42,24 +47,44 @@ class Deutsch_Jozsa(object):
     def _dj_algorithm(self, oracle):
         dj_circuit = QuantumCircuit(self.n+1, self.n)
         dj_circuit.x(self.n)
+        dj_circuit.barrier()
         dj_circuit.h(self.n)
+        dj_circuit.barrier()
         
         for qubit in range(self.n):
             dj_circuit.h(qubit)
+        dj_circuit.barrier()
         dj_circuit.append(oracle, range(n+1))
         for qubit in range(self.n):
             dj_circuit.h(qubit)
+        dj_circuit.barrier()
         for i in range(self.n):
             dj_circuit.measure(i, i)
-        
-        results = execute(dj_circuit, backend=backend, shots=1024).result()
-        answer = results.get_counts()
+
+    	
+        backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 10 and not x.configuration().simulator and x.status().operational==True))
+        print("least busy backend: ", backend)
+        shots = 8000
+        job = execute(dj_circuit, backend=backend, shots=shots, optimization_level=3)
+        job_monitor(job, interval = 2)
+
+        try: 
+            result = job.result()
+        except:
+            print(job.error_message())
+            return -1, -1
+        answer = result.get_counts(dj_circuit)
         print(answer)
-        print("--%s seconds--" % (time.time() - start_time))
+
+        fi = plot_histogram(answer)
+        fi.savefig(fname = "dj_results5_8000.png")
+        
+        #fig = dj_circuit.draw(output = "mpl")
+        #fig.savefig(fname = "dj6.png")
+        print("--%s seconds--" % result.time_taken)
 
 if __name__ == '__main__':
     start_time = time.time()
-    backend = BasicAer.get_backend('qasm_simulator')
     args = parser.parse_args()
     n = int((args.bits))
 
