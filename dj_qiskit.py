@@ -62,7 +62,7 @@ class Deutsch_Jozsa(object):
             dj_circuit.measure(i, i)
 
     	
-        backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 10 and not x.configuration().simulator and x.status().operational==True))
+        backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= len(self.qubits) and not x.configuration().simulator and x.status().operational==True))
         print("least busy backend: ", backend)
         shots = 8000
         job = execute(dj_circuit, backend=backend, shots=shots, optimization_level=3)

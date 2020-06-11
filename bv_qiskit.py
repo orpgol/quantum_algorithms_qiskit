@@ -46,7 +46,7 @@ class Bernstein_Vazirani(object):
 		for i in range(self.n):
 			bv_circuit.measure(i, i)
 
-		backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 6 and not x.configuration().simulator and x.status().operational==True))
+		backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= len(self.qubits) and not x.configuration().simulator and x.status().operational==True))
 		print("least busy backend: ", backend)
 		shots = 8000
 		job = execute(bv_circuit, backend=backend, shots=shots, optimization_level=3)
