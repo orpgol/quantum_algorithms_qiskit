@@ -42,7 +42,7 @@ Measurements for `n` bits (1 if the oracle is constant and 0 if it is balanced).
 
 ## Simon's
 ```
-usage: simons.py [-h] string ftype
+usage: simons.py [-h] [--ibmq] string ftype
 
 positional arguments:
   string      Secret string s of length n
@@ -50,6 +50,7 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+  --ibmq      Run on IBMQ
 ```
 
 Examples:
@@ -57,6 +58,8 @@ Examples:
 `python simons.py 10 1`
 
 `python simons.py 100 2`
+
+`python simons.py --ibmq 100 2`
 
 Output:
 

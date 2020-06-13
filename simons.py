@@ -10,6 +10,12 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, execute
 from qiskit.visualization import plot_histogram
 from sympy import Matrix, mod_inverse
 
+from qiskit import IBMQ
+from qiskit.tools.monitor import job_monitor
+from qiskit.providers.ibmq import least_busy
+#IBMQ.save_account('<your acct number>')
+
+
 class Simons(object):
     def __init__(self, n, f):
         self._qr = QuantumRegister(2*n)
@@ -58,15 +64,31 @@ class Simons(object):
                 s[yi[1]] = '1'
         return s[::-1]
     
-    def run(self):
-        simulator = Aer.get_backend('qasm_simulator')
+    def run(self, shots=1024, provider=None):
         circuit = self._create_circuit(self._oracle)
-        results = execute(circuit, simulator, shots=1024).result()
+
+        if provider is None:
+            # run the program on a QVM
+            simulator = Aer.get_backend('qasm_simulator')
+            job = execute(circuit, simulator, shots=shots)
+        else:
+            backend = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= len(self._qr) and 
+                                   not x.configuration().simulator and x.status().operational==True))
+            
+            print("least busy backend: ", backend)
+            job = execute(circuit, backend=backend, shots=shots, optimization_level=3)
+
+            job_monitor(job, interval=2)
+        try:
+            results = job.result()
+        except:
+            raise Exception(job.error_message())
         counts = results.get_counts()
         print('Generated circuit: ')
         print(circuit.draw())
         print('Circuit output:')
         print(counts)
+        print("Time taken:", results.time_taken)
         return self._solve(counts)
 
 
@@ -113,7 +135,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('string', help='Secret string s of length n')
     parser.add_argument('ftype', type=int, help='1 for one-to-one or 2 for two-to-one')
+    parser.add_argument('--ibmq', action='store_true', help='Run on IBMQ')
     args = parser.parse_args()
+
+    if args.ibmq:
+        try:
+            provider = IBMQ.load_account()
+        except:
+            raise Exception("Could not find saved IBMQ account.")
 
     assert all([x == '1' or x == '0' for x in args.string]), 'string argument must be a binary string.'
 
@@ -128,7 +157,7 @@ def main():
     print('Generated mapping:')
     pprint(mapping)
     simons = Simons(n, mapping)
-    result = simons.run()
+    result = simons.run(provider=provider if args.ibmq else None)
     result = ''.join([str(x) for x in result])
     # Check if result satisfies two-to-one function constraint
     success = np.array([mapping[x] == mapping[xor(x, result)] for x in mapping.keys()]).all() and not all([x == '0' for x in result])
